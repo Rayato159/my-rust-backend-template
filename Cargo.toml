@@ -21,3 +21,4 @@ sqlx = { version = "0.8", features = [
     "uuid",
 ] }
 config = "0.14.0"
+argon2 = "0.5.3"

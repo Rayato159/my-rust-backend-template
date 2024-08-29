@@ -6,6 +6,8 @@ pub mod app {
     #[derive(Debug, Clone)]
     pub struct Server {
         pub port: i64,
+        pub timeout: i64,
+        pub body_limit: i64,
     }
 
     #[derive(Debug, Clone)]
@@ -34,6 +36,8 @@ pub mod app {
             Ok(Arc::new(Self {
                 server: Server {
                     port: settings.get_int("server.port").unwrap(),
+                    timeout: settings.get_int("server.timeout").unwrap(),
+                    body_limit: settings.get_int("server.body_limit").unwrap(),
                 },
                 database: Database {
                     host: settings.get_string("database.host").unwrap(),

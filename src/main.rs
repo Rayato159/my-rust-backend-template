@@ -1,16 +1,23 @@
-use std::{net::SocketAddr, sync::Arc};
+use std::{net::SocketAddr, sync::Arc, time::Duration};
 
-use axum::{extract::Path, http::Method, routing::get, Json, Router};
+use axum::{
+    error_handling::HandleErrorLayer,
+    http::{Method, StatusCode},
+    routing::post,
+    BoxError, Router,
+};
 use rust_backend_template::{
     database::postgres,
-    models::{
-        error::{CustomError, ErrorResponse},
-        user::{User, UserNotFoundError},
+    handlers::{
+        not_found::not_found,
+        users::{registration, UsersHandler},
     },
     setting::app::Setting,
 };
+use tower::{timeout::TimeoutLayer, ServiceBuilder};
 use tower_http::{
     cors::{Any, CorsLayer},
+    limit::RequestBodyLimitLayer,
     trace::TraceLayer,
 };
 use tracing::info;
@@ -27,6 +34,8 @@ async fn main() {
     let db_pool = postgres::conn_getting(Arc::clone(&setting)).await.unwrap();
     info!("database connection has been established.");
 
+    let users_handler = UsersHandler::new(db_pool.clone());
+
     // build our application with a single route
     let app = Router::new()
         .layer(
@@ -40,22 +49,32 @@ async fn main() {
                 ])
                 .allow_origin(Any),
         )
-        .route("/users/:id", get(get_user))
-        .layer(TraceLayer::new_for_http());
+        .layer(RequestBodyLimitLayer::new(
+            (setting.server.body_limit * 1024 * 1024)
+                .try_into()
+                .unwrap(),
+        ))
+        .route(
+            "/users",
+            post({
+                let users_service = Arc::clone(&users_handler.users_service);
+                move |req| registration(req, users_service)
+            }),
+        )
+        .layer(TraceLayer::new_for_http())
+        .layer(
+            ServiceBuilder::new()
+                .layer(HandleErrorLayer::new(|_: BoxError| async {
+                    StatusCode::REQUEST_TIMEOUT
+                }))
+                .layer(TimeoutLayer::new(Duration::from_secs(
+                    setting.server.timeout.try_into().unwrap(),
+                ))),
+        )
+        .fallback(not_found);
 
     let addr = SocketAddr::from(([0, 0, 0, 0], setting.server.port as u16));
     let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
     info!("Server running on port {}", setting.server.port);
     axum::serve(listener, app).await.unwrap();
-}
-
-async fn get_user(Path(user_id): Path<i64>) -> Result<Json<User>, Json<ErrorResponse>> {
-    if user_id == 1 {
-        return Ok(Json(User {
-            id: 1,
-            username: "john_doe".to_string(),
-            password: "123456".to_string(),
-        }));
-    }
-    Err(Json(UserNotFoundError::new(user_id).error()))
 }
