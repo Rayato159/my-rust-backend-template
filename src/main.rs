@@ -14,6 +14,7 @@ use rust_backend_template::{
     },
     setting::app::Setting,
 };
+use tokio::{net::TcpListener, signal};
 use tower::{timeout::TimeoutLayer, ServiceBuilder};
 use tower_http::{
     cors::{Any, CorsLayer},
@@ -74,7 +75,39 @@ async fn main() {
         .fallback(not_found);
 
     let addr = SocketAddr::from(([0, 0, 0, 0], setting.server.port as u16));
-    let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
+
+    let listener = TcpListener::bind(addr).await.unwrap();
+
     info!("Server running on port {}", setting.server.port);
-    axum::serve(listener, app).await.unwrap();
+
+    axum::serve(listener, app)
+        .with_graceful_shutdown(shutdown_signal())
+        .await
+        .unwrap();
+}
+
+async fn shutdown_signal() {
+    let ctrl_c = async {
+        signal::ctrl_c()
+            .await
+            .expect("Failed to install Ctrl+C handler");
+    };
+
+    #[cfg(unix)]
+    let terminate = async {
+        signal::unix::signal(signal::unix::SignalKind::terminate())
+            .expect("Failed to install signal handler")
+            .recv()
+            .await;
+    };
+
+    #[cfg(not(unix))]
+    let terminate = std::future::pending::<()>();
+
+    tokio::select! {
+        _ = ctrl_c => {
+            info!("Starting graceful shutdown");
+        },
+        _ = terminate => {},
+    }
 }

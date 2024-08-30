@@ -9,7 +9,7 @@ pub struct UserRegistration {
     pub password: String,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, PartialEq, Eq)]
 pub struct User {
     pub id: i32,
     pub username: String,
