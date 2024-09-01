@@ -1,6 +1,5 @@
-use axum::http::StatusCode;
-
 use super::error::{CustomError, ErrorResponse};
+use axum::http::StatusCode;
 
 pub enum Error {
     PasswordHashing,

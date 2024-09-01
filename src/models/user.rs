@@ -1,7 +1,6 @@
+use super::error::{CustomError, ErrorResponse};
 use axum::{http::StatusCode, response::IntoResponse};
 use serde::{Deserialize, Serialize};
-
-use super::error::{CustomError, ErrorResponse};
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct UserRegistration {

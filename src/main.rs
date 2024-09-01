@@ -1,5 +1,3 @@
-use std::{net::SocketAddr, sync::Arc, time::Duration};
-
 use axum::{
     error_handling::HandleErrorLayer,
     http::{Method, StatusCode},
@@ -14,6 +12,7 @@ use rust_backend_template::{
     },
     setting::app::Setting,
 };
+use std::{net::SocketAddr, sync::Arc, time::Duration};
 use tokio::{net::TcpListener, signal};
 use tower::{timeout::TimeoutLayer, ServiceBuilder};
 use tower_http::{

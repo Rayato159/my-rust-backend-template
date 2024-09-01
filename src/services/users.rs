@@ -81,18 +81,15 @@ impl UsersService for UsersServiceImpl {
 
 #[cfg(test)]
 mod tests {
-    use core::panic;
-    use std::sync::Arc;
-
-    use chrono::{TimeZone, Utc};
-    use mockall::predicate::eq;
-
+    use super::UsersServiceImpl;
     use crate::entities::user::User as UserEntity;
     use crate::models::user::{User, UserRegistration};
     use crate::repositories::hasing_password::MockHashingPassword;
     use crate::repositories::users::MockUsersRepository;
-
-    use super::UsersServiceImpl;
+    use chrono::{TimeZone, Utc};
+    use core::panic;
+    use mockall::predicate::eq;
+    use std::sync::Arc;
 
     #[tokio::test]
     async fn registration_test() {

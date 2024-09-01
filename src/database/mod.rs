@@ -1,9 +1,7 @@
 pub mod postgres {
-    use std::sync::Arc;
-
-    use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
-
     use crate::setting::app::Setting;
+    use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
+    use std::sync::Arc;
 
     pub async fn conn_getting(setting: Arc<Setting>) -> Result<Pool<Postgres>, sqlx::Error> {
         let pool = PgPoolOptions::new()

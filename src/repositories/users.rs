@@ -1,15 +1,12 @@
-use std::sync::Arc;
-
-use axum::async_trait;
-use sqlx::PgPool;
-use tracing::error;
-
 use crate::{
     entities::user::User,
     models::{error::CustomError, user::Error},
 };
-
+use axum::async_trait;
 use mockall::*;
+use sqlx::PgPool;
+use std::sync::Arc;
+use tracing::error;
 
 pub type SharedUsersRepository = Arc<dyn UsersRepository + Send + Sync>;
 

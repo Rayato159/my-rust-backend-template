@@ -1,13 +1,11 @@
-use std::sync::Arc;
-
-use axum::{http::StatusCode, response::IntoResponse, Json};
-use sqlx::PgPool;
-
 use crate::{
     models::user::UserRegistration,
     repositories::{hasing_password::HashingPasswordImpl, users::UsersRepositoryImpl},
     services::users::{SharedUsersService, UsersServiceImpl},
 };
+use axum::{http::StatusCode, response::IntoResponse, Json};
+use sqlx::PgPool;
+use std::sync::Arc;
 
 pub struct UsersHandler {
     pub users_service: SharedUsersService,
